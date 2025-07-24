@@ -475,237 +475,65 @@
     </style>
 </head>
 <script>
-        // Gestion automatique des radio buttons Oui/Non mutuellement exclusifs
-        document.addEventListener('DOMContentLoaded', function() {
-            // Initialiser la date du jour
-            const today = new Date();
-            const dateStr = today.toLocaleDateString('fr-FR');
-            document.getElementById('date_rapport').textContent = dateStr;
-            
-            // Copier automatiquement le nom de l'ergothérapeute
-            document.getElementById('ergotherapeute').addEventListener('input', function() {
-                document.getElementById('nom_ergo_rapport').textContent = this.value;
-            });
-            
-            // Gestion des boutons radio mutuellement exclusifs
-            const radioGroups = document.querySelectorAll('.radio-group');
-            radioGroups.forEach(group => {
-                const radios = group.querySelectorAll('input[type="radio"]');
-                radios.forEach(radio => {
-                    radio.addEventListener('change', function() {
-                        if (this.checked) {
-                            radios.forEach(r => {
-                                if (r !== this) r.checked = false;
-                            });
-                        }
-                    });
-                });
-            });
-            
-            // Animation au scroll
-            const sections = document.querySelectorAll('.section');
-            const observer = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        entry.target.style.opacity = '1';
-                        entry.target.style.transform = 'translateY(0)';
-                    }
-                });
-            }, { threshold: 0.1 });
-            
-            sections.forEach(section => {
-                section.style.opacity = '0';
-                section.style.transform = 'translateY(20px)';
-                section.style.transition = 'all 0.6s ease';
-                observer.observe(section);
-            });
+    // Gestion automatique des radio buttons Oui/Non mutuellement exclusifs
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialiser la date du jour
+        const today = new Date();
+        const dateStr = today.toLocaleDateString('fr-FR');
+        document.getElementById('date_rapport').textContent = dateStr;
+        
+        // Copier automatiquement le nom de l'ergothérapeute
+        document.getElementById('ergotherapeute').addEventListener('input', function() {
+            document.getElementById('nom_ergo_rapport').textContent = this.value;
         });
         
-        // Fonction de sauvegarde
-        function saveForm() {
-            const loading = document.getElementById('loading');
-            const successMsg = document.getElementById('successMessage');
-            
-            loading.style.display = 'block';
-            
-            const formData = {};
-            
-            // Sauvegarder tous les inputs
-            document.querySelectorAll('input, textarea, select').forEach(element => {
-                if (element.type === 'checkbox' || element.type === 'radio') {
-                    formData[element.name || element.id] = element.checked;
-                } else if (element.type !== 'file') {
-                    formData[element.name || element.id] = element.value;
-                }
-            });
-            
-            // Sauvegarder dans localStorage
-            localStorage.setItem('diagnosticFormData', JSON.stringify(formData));
-            
-            setTimeout(() => {
-                loading.style.display = 'none';
-                successMsg.style.display = 'block';
-                successMsg.textContent = '✅ Formulaire sauvegardé avec succès !';
-                
-                setTimeout(() => {
-                    successMsg.style.display = 'none';
-                }, 3000);
-            }, 1000);
-        }
-        
-        // Fonction de restauration des données
-        function restoreForm() {
-            const savedData = localStorage.getItem('diagnosticFormData');
-            if (savedData) {
-                const formData = JSON.parse(savedData);
-                
-                Object.keys(formData).forEach(key => {
-                    const element = document.querySelector(`[name="${key}"], #${key}`);
-                    if (element) {
-                        if (element.type === 'checkbox' || element.type === 'radio') {
-                            element.checked = formData[key];
-                        } else {
-                            element.value = formData[key];
-                        }
-                    }
-                });
-                
-                // Mettre à jour le nom de l'ergothérapeute dans le footer
-                const ergoName = document.getElementById('ergotherapeute').value;
-                if (ergoName) {
-                    document.getElementById('nom_ergo_rapport').textContent = ergoName;
-                }
-            }
-        }
-        
-        // Restaurer les données au chargement si elles existent
-        document.addEventListener('DOMContentLoaded', function() {
-            if (localStorage.getItem('diagnosticFormData')) {
-                if (confirm('Des données sauvegardées ont été trouvées. Voulez-vous les restaurer ?')) {
-                    restoreForm();
-                }
-            }
-        });
-        
-        // Fonction d'envoi par email
-        function sendByEmail() {
-            const loading = document.getElementById('loading');
-            const successMsg = document.getElementById('successMessage');
-            
-            loading.style.display = 'block';
-            
-            // Collecter toutes les données du formulaire
-            let emailContent = 'DIAGNOSTIC AMÉNAGEMENT DU DOMICILE\n\n';
-            emailContent += '=================================\n\n';
-            
-            // Parcourir toutes les sections
-            document.querySelectorAll('.section').forEach(section => {
-                const sectionTitle = section.querySelector('.section-title').textContent;
-                emailContent += `\n${sectionTitle}\n${'='.repeat(sectionTitle.length)}\n\n`;
-                
-                // Collecter les valeurs des inputs dans cette section
-                section.querySelectorAll('input, textarea, select').forEach(element => {
-                    if (element.type === 'checkbox' || element.type === 'radio') {
-                        if (element.checked) {
-                            const label = element.parentElement.textContent.trim();
-                            emailContent += `- ${label}\n`;
-                        }
-                    } else if (element.value && element.type !== 'file') {
-                        const label = element.previousElementSibling?.textContent || element.placeholder || element.name;
-                        emailContent += `${label}: ${element.value}\n`;
+        // Gestion des boutons radio mutuellement exclusifs
+        const radioGroups = document.querySelectorAll('.radio-group');
+        radioGroups.forEach(group => {
+            const radios = group.querySelectorAll('input[type="radio"]');
+            radios.forEach(radio => {
+                radio.addEventListener('change', function() {
+                    if (this.checked) {
+                        radios.forEach(r => {
+                            if (r !== this) r.checked = false;
+                        });
                     }
                 });
             });
-            
-            // Encoder le contenu pour l'URL mailto
-            const subject = encodeURIComponent('Diagnostic Aménagement du Domicile - ' + document.getElementById('beneficiaire').value);
-            const body = encodeURIComponent(emailContent);
-            
-            setTimeout(() => {
-                loading.style.display = 'none';
-                
-                // Ouvrir le client mail
-                window.location.href = `mailto:contact@altergo34.fr?subject=${subject}&body=${body}`;
-                
-                successMsg.style.display = 'block';
-                successMsg.textContent = '✅ Préparation de l\'email terminée !';
-                
-                setTimeout(() => {
-                    successMsg.style.display = 'none';
-                }, 3000);
-            }, 1000);
-        }
-        
-        // Amélioration de l'impression
-        window.addEventListener('beforeprint', function() {
-            // Masquer les boutons et éléments non imprimables
-            document.querySelectorAll('.btn, input[type="file"]').forEach(el => {
-                el.style.display = 'none';
-            });
-            
-            // Afficher toutes les sections (au cas où certaines seraient masquées)
-            document.querySelectorAll('.section').forEach(section => {
-                section.style.opacity = '1';
-                section.style.transform = 'none';
-            });
         });
         
-        window.addEventListener('afterprint', function() {
-            // Restaurer l'affichage des boutons
-            document.querySelectorAll('.btn').forEach(el => {
-                el.style.display = 'inline-flex';
-            });
-            document.querySelectorAll('input[type="file"]').forEach(el => {
-                el.style.display = 'block';
-            });
-        });
-        
-        // Validation des champs obligatoires
-        function validateForm() {
-            const requiredFields = ['beneficiaire', 'ergotherapeute', 'email_ergo', 'tel_ergo'];
-            let isValid = true;
-            
-            requiredFields.forEach(fieldId => {
-                const field = document.getElementById(fieldId);
-                if (!field.value.trim()) {
-                    field.style.borderColor = '#e74c3c';
-                    isValid = false;
-                } else {
-                    field.style.borderColor = '#ddd';
+        // Animation au scroll
+        const sections = document.querySelectorAll('.section');
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
                 }
             });
-            
-            if (!isValid) {
-                alert('Veuillez remplir tous les champs obligatoires (marqués en rouge)');
+        }, { threshold: 0.1 });
+        
+        sections.forEach(section => {
+            section.style.opacity = '0';
+            section.style.transform = 'translateY(20px)';
+            section.style.transition = 'all 0.6s ease';
+            observer.observe(section);
+        });
+        
+        // Vérifier si des données sont sauvegardées
+        if (localStorage.getItem('diagnosticFormData')) {
+            if (confirm('Des données sauvegardées ont été trouvées. Voulez-vous les restaurer ?')) {
+                restoreForm();
             }
-            
-            return isValid;
         }
-        
-        // Ajouter la validation avant la sauvegarde et l'envoi
-        const originalSaveForm = window.saveForm;
-        window.saveForm = function() {
-            if (validateForm()) {
-                originalSaveForm();
-            }
-        };
-        
-        const originalSendByEmail = window.sendByEmail;
-        window.sendByEmail = function() {
-            if (validateForm()) {
-                originalSendByEmail();
-            }
-        };
         
         // Animation du logo au chargement
-        document.addEventListener('DOMContentLoaded', function() {
-            const logoBoxes = document.querySelectorAll('.logo-box');
-            logoBoxes.forEach((box, index) => {
-                setTimeout(() => {
-                    box.style.transform = 'scale(1)';
-                    box.style.opacity = '1';
-                }, index * 200);
-            });
+        const logoBoxes = document.querySelectorAll('.logo-box');
+        logoBoxes.forEach((box, index) => {
+            setTimeout(() => {
+                box.style.transform = 'scale(1)';
+                box.style.opacity = '1';
+            }, index * 200);
         });
         
         // Gestion des listes déroulantes personnalisées
@@ -736,7 +564,247 @@
         });
         
         console.log('✅ Formulaire de diagnostic ergothérapique chargé avec succès !');
-    </script>
+    });
+    
+    // Fonction de sauvegarde AMÉLIORÉE - Télécharge sur PC + localStorage
+    function saveForm() {
+        const loading = document.getElementById('loading');
+        const successMsg = document.getElementById('successMessage');
+        
+        loading.style.display = 'block';
+        
+        // Créer le contenu du fichier texte
+        let content = "DIAGNOSTIC AMÉNAGEMENT DU DOMICILE - CABINET ALTERGO34\n";
+        content += "======================================================\n\n";
+        content += "Date du rapport : " + new Date().toLocaleDateString('fr-FR') + "\n";
+        content += "Heure : " + new Date().toLocaleTimeString('fr-FR') + "\n\n";
+        
+        // Parcourir toutes les sections pour créer le fichier
+        document.querySelectorAll('.section').forEach(section => {
+            const sectionTitle = section.querySelector('.section-title')?.textContent || '';
+            content += `\n--- ${sectionTitle} ---\n\n`;
+            
+            // Récupérer tous les champs de la section
+            section.querySelectorAll('input, textarea, select').forEach(element => {
+                let label = '';
+                let value = '';
+                
+                // Trouver le label associé
+                const labelElement = element.previousElementSibling || 
+                                    element.closest('.form-item')?.querySelector('label') ||
+                                    document.querySelector(`label[for="${element.id}"]`);
+                
+                if (labelElement) {
+                    label = labelElement.textContent.replace(':', '').trim();
+                } else {
+                    label = element.placeholder || element.name || element.id || 'Sans nom';
+                }
+                
+                // Récupérer la valeur selon le type
+                if (element.type === 'checkbox' || element.type === 'radio') {
+                    if (element.checked) {
+                        value = '✓ OUI';
+                        content += `${label}: ${value}\n`;
+                    }
+                } else if (element.value && element.type !== 'file') {
+                    value = element.value;
+                    content += `${label}: ${value}\n`;
+                }
+            });
+        });
+        
+        // Créer et télécharger le fichier
+        const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        
+        // Nom du fichier avec date et nom du bénéficiaire
+        const beneficiaire = document.getElementById('beneficiaire')?.value || 'inconnu';
+        const date = new Date().toISOString().split('T')[0];
+        a.download = `diagnostic_${beneficiaire.replace(/\s+/g, '_')}_${date}.txt`;
+        
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+        
+        // Sauvegarder aussi dans localStorage pour restauration
+        const formData = {};
+        document.querySelectorAll('input, textarea, select').forEach(element => {
+            if (element.type === 'checkbox' || element.type === 'radio') {
+                formData[element.name || element.id] = element.checked;
+            } else if (element.type !== 'file') {
+                formData[element.name || element.id] = element.value;
+            }
+        });
+        localStorage.setItem('diagnosticFormData', JSON.stringify(formData));
+        
+        setTimeout(() => {
+            loading.style.display = 'none';
+            successMsg.style.display = 'block';
+            successMsg.textContent = '✅ Formulaire téléchargé dans vos Téléchargements + sauvegarde locale !';
+            
+            setTimeout(() => {
+                successMsg.style.display = 'none';
+            }, 3000);
+        }, 1000);
+    }
+    
+    // Fonction de restauration des données
+    function restoreForm() {
+        const savedData = localStorage.getItem('diagnosticFormData');
+        if (savedData) {
+            const formData = JSON.parse(savedData);
+            
+            Object.keys(formData).forEach(key => {
+                const element = document.querySelector(`[name="${key}"], #${key}`);
+                if (element) {
+                    if (element.type === 'checkbox' || element.type === 'radio') {
+                        element.checked = formData[key];
+                    } else {
+                        element.value = formData[key];
+                    }
+                }
+            });
+            
+            // Mettre à jour le nom de l'ergothérapeute dans le footer
+            const ergoName = document.getElementById('ergotherapeute').value;
+            if (ergoName) {
+                document.getElementById('nom_ergo_rapport').textContent = ergoName;
+            }
+        }
+    }
+    
+    // Fonction d'envoi par email AMÉLIORÉE
+    function sendByEmail() {
+        const loading = document.getElementById('loading');
+        const successMsg = document.getElementById('successMessage');
+        
+        loading.style.display = 'block';
+        
+        // Informations principales
+        const beneficiaire = document.getElementById('beneficiaire')?.value || 'Non renseigné';
+        const ergotherapeute = document.getElementById('ergotherapeute')?.value || 'Non renseigné';
+        const email_ergo = document.getElementById('email_ergo')?.value || 'Non renseigné';
+        const tel_ergo = document.getElementById('tel_ergo')?.value || 'Non renseigné';
+        
+        // Créer le contenu de l'email
+        let emailContent = 'DIAGNOSTIC AMÉNAGEMENT DU DOMICILE - CABINET ALTERGO34\n\n';
+        emailContent += '=== INFORMATIONS GÉNÉRALES ===\n';
+        emailContent += `Bénéficiaire : ${beneficiaire}\n`;
+        emailContent += `Ergothérapeute : ${ergotherapeute}\n`;
+        emailContent += `Email : ${email_ergo}\n`;
+        emailContent += `Téléphone : ${tel_ergo}\n`;
+        emailContent += `Date : ${new Date().toLocaleDateString('fr-FR')}\n\n`;
+        
+        // Informations du bénéficiaire
+        const age = document.getElementById('age')?.value;
+        const dateNaissance = document.getElementById('date_naissance')?.value;
+        const gir = document.querySelector('input[name="gir"]:checked')?.value;
+        const situation = document.querySelector('input[name="situation"]:checked')?.value;
+        
+        emailContent += '=== LE BÉNÉFICIAIRE ===\n';
+        if (dateNaissance) emailContent += `Date de naissance : ${dateNaissance}\n`;
+        if (age) emailContent += `Âge : ${age} ans\n`;
+        if (gir) emailContent += `GIR : ${gir}\n`;
+        if (situation) emailContent += `Situation : ${situation}\n`;
+        
+        // Motifs de la visite
+        emailContent += '\n=== MOTIF DE LA VISITE ===\n';
+        document.querySelectorAll('input[name^="motif_"]:checked').forEach(motif => {
+            const label = motif.nextElementSibling?.textContent || motif.value;
+            emailContent += `- ${label}\n`;
+        });
+        
+        // Remarques
+        const remarques = document.getElementById('motif_remarques')?.value;
+        if (remarques) {
+            emailContent += `\nRemarques : ${remarques}\n`;
+        }
+        
+        emailContent += '\n\n--- Pour le rapport complet, utilisez la fonction "Sauvegarder" ---';
+        
+        // Créer le lien mailto
+        const subject = encodeURIComponent(`Diagnostic - ${beneficiaire} - ${new Date().toLocaleDateString('fr-FR')}`);
+        const body = encodeURIComponent(emailContent);
+        
+        setTimeout(() => {
+            loading.style.display = 'none';
+            
+            // Ouvrir le client mail
+            window.location.href = `mailto:contact@altergo34.fr?subject=${subject}&body=${body}`;
+            
+            successMsg.style.display = 'block';
+            successMsg.textContent = '✅ Ouverture de votre client email...';
+            
+            setTimeout(() => {
+                successMsg.style.display = 'none';
+            }, 3000);
+        }, 1000);
+    }
+    
+    // Validation des champs obligatoires
+    function validateForm() {
+        const requiredFields = ['beneficiaire', 'ergotherapeute', 'email_ergo', 'tel_ergo'];
+        let isValid = true;
+        
+        requiredFields.forEach(fieldId => {
+            const field = document.getElementById(fieldId);
+            if (!field.value.trim()) {
+                field.style.borderColor = '#e74c3c';
+                isValid = false;
+            } else {
+                field.style.borderColor = '#ddd';
+            }
+        });
+        
+        if (!isValid) {
+            alert('Veuillez remplir tous les champs obligatoires (marqués en rouge)');
+        }
+        
+        return isValid;
+    }
+    
+    // Amélioration de l'impression
+    window.addEventListener('beforeprint', function() {
+        // Masquer les boutons et éléments non imprimables
+        document.querySelectorAll('.btn, input[type="file"]').forEach(el => {
+            el.style.display = 'none';
+        });
+        
+        // Afficher toutes les sections
+        document.querySelectorAll('.section').forEach(section => {
+            section.style.opacity = '1';
+            section.style.transform = 'none';
+        });
+    });
+    
+    window.addEventListener('afterprint', function() {
+        // Restaurer l'affichage des boutons
+        document.querySelectorAll('.btn').forEach(el => {
+            el.style.display = 'inline-flex';
+        });
+        document.querySelectorAll('input[type="file"]').forEach(el => {
+            el.style.display = 'block';
+        });
+    });
+    
+    // Redéfinir les fonctions avec validation
+    const originalSaveForm = window.saveForm;
+    window.saveForm = function() {
+        if (validateForm()) {
+            originalSaveForm();
+        }
+    };
+    
+    const originalSendByEmail = window.sendByEmail;
+    window.sendByEmail = function() {
+        if (validateForm()) {
+            originalSendByEmail();
+        }
+    };
+</script>
 <body>
     <div class="container">
         <!-- Header -->
